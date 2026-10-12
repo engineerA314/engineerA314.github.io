@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Junyoung Park — AI Engineer</title>
+  <meta name="description" content="Junyoung Park's portfolio: GPU inference engines, real-time speech systems, multimodal model training, and distributed LLM training. Nari Labs AI Engineer and Weavel co-founder, YC S24.">
+  <meta property="og:title" content="Junyoung Park — AI Engineer">
+  <meta property="og:description" content="Model-aware inference. Multimodal training. From architecture to implementation and measured results.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://engineerA314.github.io/">
+  <meta property="og:image" content="https://engineerA314.github.io/assets/portrait.jpg">
+  <meta name="theme-color" content="#faf9f6">
+  <link rel="canonical" href="https://engineerA314.github.io/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <aside class="sidebar" aria-label="Portfolio navigation">
+    <a class="identity" href="#about">Junyoung Park<span>AI Engineer</span></a>
+    <nav>
+      <a href="#about">About</a>
+      <span class="nav-label">Selected projects</span>
+      <a href="#full-duplex"><span>01</span> Full-duplex speech</a>
+      <a href="#qwen-tts"><span>02</span> Qwen3-TTS</a>
+      <a href="#avatar"><span>03</span> Causal avatar model</a>
+      <a href="#async-grpo"><span>04</span> Async-GRPO</a>
+      <a href="#experience">Experience</a>
+      <a href="#research">Research &amp; education</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a class="resume-link" href="Junyoung_Park_Resume.pdf" target="_blank" rel="noopener">Resume PDF <span aria-hidden="true">↗</span></a>
+      <a href="mailto:junpark314a@gmail.com">Get in touch <span aria-hidden="true">↗</span></a>
+    </div>
+  </aside>
+  <main id="main">
+    <header id="about" class="intro">
+      <div class="intro-top"><span class="eyebrow">GPU INFERENCE · MULTIMODAL TRAINING</span><span class="location">Seoul, South Korea</span></div>
+      <div class="intro-body">
+        <div>
+          <h1>Junyoung Park</h1>
+          <p class="lead">I build efficient systems<br class="desktop-break"> for training and serving AI models.</p>
+          <p>I’m an AI Engineer at Nari Labs and a former co-founder &amp; CTO of Weavel, a Y Combinator S24 company. My work spans causal video model training, real-time speech inference, and LLM developer tools.</p>
+          <p>I’m interested in understanding model architectures and improving the computation, memory, communication, and scheduling that make them practical.</p>
+          <div class="contact-links"><a href="mailto:junpark314a@gmail.com">Email ↗</a><a href="https://github.com/engineerA314" target="_blank" rel="noopener">GitHub ↗</a><a href="https://www.linkedin.com/in/jun-park314/" target="_blank" rel="noopener">LinkedIn ↗</a><a href="Junyoung_Park_Resume.pdf" target="_blank" rel="noopener">Resume ↗</a></div>
+        </div>
+        <img class="portrait" src="assets/portrait.jpg" width="480" height="480" alt="Portrait of Junyoung Park">
+      </div>
+      <div class="highlights" aria-label="Project highlights">
+        <a href="#full-duplex"><strong>80 / 64</strong><span>Concurrent speech sessions<br>on one H100</span></a>
+        <a href="#qwen-tts"><strong>51 ms</strong><span>Median first audio<br>Speko latency #1</span></a>
+        <a href="#avatar"><strong>37% less</strong><span>Teacher training<br>step time</span></a>
+        <a href="#async-grpo"><strong>874×</strong><span>Faster 7B model<br>weight synchronization</span></a>
+      </div>
+    </header>
+
+    <section class="project" id="full-duplex">
+      <div class="section-kicker"><span>01 / SELECTED PROJECT</span><span>Nari Labs · Aug–Sep 2026</span></div>
+      <h2>Full-duplex Speech-to-Speech<br>Inference Engines</h2>
+      <figure>
+        <a href="assets/nemotron-comparison.png" target="_blank" rel="noopener" aria-label="Open full-size Nemotron engine comparison"><img src="assets/nemotron-comparison.png" width="704" height="274" loading="lazy" alt="Nemotron comparison: vLLM-Omni supports 1 session, NVIDIA NIM 4, NVIDIA C++ 6, and Nari 64 on one H100."></a>
+        <figcaption>Nemotron serving results. <a href="https://narilabs.com/blog/making-tool-using-voice-agents-more-affordable/" target="_blank" rel="noopener">Nari Labs technical post ↗</a></figcaption>
+      </figure>
+      <p class="one-liner">I rebuilt the runtime and scheduler to serve 80 PersonaPlex 7B conversations or 64 Nemotron VoiceChat 11B conversations on a single H100.</p>
+      <dl class="tldr">
+        <div><dt>Problem</dt><dd>Existing serving engines used the GPU inefficiently for models that listen and speak simultaneously. vLLM-Omni supported one Nemotron conversation per H100; NVIDIA’s engines supported four to six.</dd></div>
+        <div><dt>Approach</dt><dd>I designed model-specific runtimes that batch live conversations on a common 80 ms clock, then use the time before the next audio deadline to generate tool calls and process their results.</dd></div>
+        <div><dt>Result</dt><dd>80 PersonaPlex sessions or 64 Nemotron sessions on one H100. Nemotron reached 16× NVIDIA NIM’s concurrent capacity, with a GPU cost of $0.067 per conversation-hour at full utilization.</dd></div>
+      </dl>
+      <div class="project-links"><a href="https://narilabs.com/blog/personaplex-7b-80-sessions-one-h100/" target="_blank" rel="noopener">PersonaPlex technical post ↗</a><a href="https://narilabs.com/blog/making-tool-using-voice-agents-more-affordable/" target="_blank" rel="noopener">Nemotron technical post ↗</a></div>
+      <h3>Background</h3>
+      <p>These models consume an audio frame and produce the next one every 80 ms. Missing that deadline can empty the playback buffer and interrupt the conversation. High average throughput is insufficient: each live session must keep up with the audio clock.</p>
+      <p>The vLLM-Omni paths I tested did not organize this workload around a shared audio clock. Sessions triggered small batches and repeated CPU–GPU synchronization. Tool processing also followed the audio cadence, so generating even a short tool-call string could take seconds. The GPU was underused, while each additional conversation increased overhead.</p>
+      <h3>What I built</h3>
+      <ol class="changes">
+        <li><strong>A runtime built around the model’s audio clock.</strong> I aligned live sessions into fixed batches and optimized the end-to-end GPU execution path. CUDA Graph capture, preallocated buffers, and model-specific execution reduced repeated launch and synchronization costs.</li>
+        <li><strong>More conversations within the same memory budget.</strong> I kept model weights in BF16 and stored the temporal KV cache in FP8, halving the memory used by that cache.</li>
+        <li><strong>Fast tool use without delaying live audio.</strong> The scheduler reserves time for audio first, batches tool-call decoding in the remaining window, and processes returned text with chunked prefill sized to fit before the next deadline.</li>
+        <li><strong>Session and transport handling outside the GPU loop.</strong> I separated Opus audio processing and WebSocket I/O from model execution so networking and session turnover would not stall the GPU.</li>
+      </ol>
+      <h3>Results</h3>
+      <p>PersonaPlex supported 80 simultaneous sessions with no missed 80 ms deadlines or dropped frames in a 10-minute, 3,000-token-context load test. A 30-minute session-turnover test checked session lifecycle handling. Nemotron supported 64 sessions, including 16 using tools, without missed audio deadlines or dropped frames.</p>
+      <p class="note">Hardware: one H100 SXM 80GB. Nemotron comparisons used uninterrupted playback with a 160 ms buffer. The $0.067 figure assumes full utilization and an H100 price of $4.29/hour; engine precision differs as documented in the linked comparison.</p>
+    </section>
+
+    <section class="project" id="qwen-tts">
+      <div class="section-kicker"><span>02 / SELECTED PROJECT</span><span>Nari Labs · Aug–Sep 2026</span></div>
+      <h2>Qwen3-TTS Inference Engine<br>&amp; Streaming API</h2>
+      <figure>
+        <a href="assets/speko-latency.png" target="_blank" rel="noopener" aria-label="Open full-size Speko benchmark"><img src="assets/speko-latency.png" width="1216" height="357" loading="lazy" alt="Speko benchmark: Nari Qwen3-TTS Preview achieves 51 ms median time to first audio, the fastest endpoint in this snapshot."></a>
+        <figcaption>Speko benchmark snapshot, August 30, 2026. <a href="https://narilabs.com/blog/qwen3-tts-speko-benchmark/" target="_blank" rel="noopener">Benchmark report ↗</a></figcaption>
+      </figure>
+      <p class="one-liner">I built a scheduler around Qwen3-TTS’s internal modules and served it through a streaming API, achieving #1 latency on Speko and #2 on Coval.</p>
+      <dl class="tldr">
+        <div><dt>Problem</dt><dd>Qwen3-TTS has three generation modules with different execution costs. Running a long sequence of module jobs for one request delayed other requests’ first audio or their next playback chunk.</dd></div>
+        <div><dt>Approach</dt><dd>I made Talker, Code Predictor, and Codec jobs independently schedulable, and designed a policy that balances first-audio latency, playback deadlines, and efficient batching.</dd></div>
+        <div><dt>Result</dt><dd>Median time to first audio of 51 ms on Speko (#1) and 63 ms on Coval (#2), measured by third-party benchmarks in Aug–Sep 2026.</dd></div>
+      </dl>
+      <div class="project-links"><a href="https://github.com/nari-labs/nari-qwen3-tts" target="_blank" rel="noopener">Open-source implementation ↗</a><a href="https://narilabs.com/blog/qwen3-tts-speed-cost-frontier/" target="_blank" rel="noopener">Inference technical post ↗</a><a href="https://narilabs.com/blog/input-streaming-for-nari-qwen3-tts/" target="_blank" rel="noopener">Input-streaming API ↗</a></div>
+      <h3>Background</h3>
+      <p>Qwen3-TTS generates speech in three stages: Talker produces speech codes, Code Predictor completes them, and Codec turns them into audio. The modules differ in compute cost, repetition, and batching efficiency. Running a long sequence of jobs for one request can block another request’s first audio or next playback chunk.</p>
+      <p>New requests need their first audio quickly; ongoing requests need each subsequent chunk before playback runs out. I therefore needed a scheduler that could see all three modules’ pending jobs and dependencies, prioritize urgent work, and still batch similar operations efficiently.</p>
+      <h3>What I built</h3>
+      <ol class="changes">
+        <li><strong>One scheduler for all module jobs.</strong> I separated Talker, Code Predictor, and Codec execution into jobs, allowing the scheduler to choose the next module and request using dependency and urgency information.</li>
+        <li><strong>A policy for first audio and continuous playback.</strong> I prioritized requests waiting for their first audio and chunks approaching their playback deadlines, while batching jobs for the same module.</li>
+        <li><strong>Lower execution cost within each module.</strong> I captured Code Predictor’s repeated work with CUDA Graphs, preallocated its KV cache, and cached Codec state so it could decode only newly generated audio.</li>
+        <li><strong>A streaming API used as a service.</strong> I developed and operated a WebSocket path that accepts text incrementally from an LLM and starts generating audio as text arrives.</li>
+      </ol>
+      <h3>Results</h3>
+      <div class="table-wrap"><table><caption>Independent TTS benchmark snapshots</caption><thead><tr><th scope="col">Benchmark</th><th scope="col">Median first audio</th><th scope="col">Latency rank</th></tr></thead><tbody><tr><th scope="row"><a href="https://narilabs.com/blog/qwen3-tts-speko-benchmark/" target="_blank" rel="noopener">Speko · Aug 30, 2026 ↗</a></th><td>51 ms</td><td>#1</td></tr><tr><th scope="row"><a href="https://narilabs.com/blog/nari-labs-leads-coval-voice-ai-benchmarks/" target="_blank" rel="noopener">Coval · Sep 14, 2026 ↗</a></th><td>63 ms</td><td>#2</td></tr></tbody></table></div>
+      <p>Coval also measured a 3.8% word error rate, ranking #1 for TTS in that snapshot. In a separate load test on one H100 at 10 requests per second, I kept p95 first-audio latency below 50 ms with complete-text input and streamed audio output.</p>
+      <p class="note">The local load test and external endpoint benchmarks use different workloads and network conditions. Rankings above refer to the dated snapshots.</p>
+    </section>
+
+    <section class="project" id="avatar">
+      <div class="section-kicker"><span>03 / SELECTED PROJECT</span><span>Nari Labs · Apr–Jul 2026</span></div>
+      <h2>2B Causal Avatar Model<br>&amp; Training Optimization</h2>
+      <figure class="video-figure">
+        <div class="video-grid">
+          <video controls playsinline preload="none" poster="assets/avatar-b.png" width="512" height="512" aria-label="Generated avatar video example one"><source src="assets/avatar-b.mp4" type="video/mp4">Your browser does not support video. <a href="assets/avatar-b.mp4">Open the sample.</a></video>
+          <video controls playsinline preload="none" poster="assets/avatar-j.png" width="512" height="512" aria-label="Generated avatar video example two"><source src="assets/avatar-j.mp4" type="video/mp4">Your browser does not support video. <a href="assets/avatar-j.mp4">Open the sample.</a></video>
+        </div>
+        <figcaption>Generated examples at 25 fps, from the teacher stage of the training process.</figcaption>
+      </figure>
+      <p class="one-liner">I developed a 2B model that generates talking and listening avatar video from text, an image, and incoming audio, and reduced teacher training step time by 37%.</p>
+      <dl class="tldr">
+        <div><dt>Problem</dt><dd>We needed a small, cost-efficient avatar model for real-time conversation on a single H100. It had to react to incoming audio rather than generate a complete video offline.</dd></div>
+        <div><dt>Approach</dt><dd>I extended Wan 1.3B with text, image, and audio conditioning, then implemented teacher training, causal student distillation, and training on the student’s own generated history.</dd></div>
+        <div><dt>Result</dt><dd>A 2B causal avatar model and a multi-stage training implementation. Teacher step time fell from 18.34 s to 11.55 s, and model FLOPs utilization increased from 23.3% to 37.0%.</dd></div>
+      </dl>
+      <h3>Background</h3>
+      <p>In a live conversation, future speech is unavailable. The model must generate the next video chunk using previous video and the current inputs. Small model size mattered for both generation speed and the cost of serving each conversation; the target was real-time operation on a single H100.</p>
+      <p>A causal model also feeds its own generated video back into the next step. Training only on clean reference video leaves a mismatch at inference time, allowing errors to accumulate during longer generation. The training process needed to address both generation quality and this feedback loop.</p>
+      <h3>What I built</h3>
+      <ol class="changes">
+        <li><strong>A model that can generate video as the conversation unfolds.</strong> I added text, image, and audio conditioning to Wan 1.3B and implemented chunk-wise causal attention so the student could produce video incrementally.</li>
+        <li><strong>Training stages with distinct purposes.</strong> I first trained the diffusion teacher for generation quality, then used ODE distillation to transfer its behavior to the student. Self-Forcing DMD trained the student on its own generated history, and adversarial refinement further improved quality.</li>
+        <li><strong>Faster distributed training.</strong> I optimized the FSDP2 training setup and reduced overhead in RMSNorm, modulation, and RoPE. FlashAttention 4 and selective activation checkpointing improved compute and memory efficiency.</li>
+      </ol>
+      <h3>Results</h3>
+      <div class="table-wrap"><table><caption>Teacher training under the same workload</caption><thead><tr><th scope="col">Metric</th><th scope="col">Baseline</th><th scope="col">Optimized</th></tr></thead><tbody><tr><th scope="row">Training step time</th><td>18.34 s</td><td>11.55 s · 37% reduction</td></tr><tr><th scope="row">Model FLOPs utilization</th><td>23.3%</td><td>37.0%</td></tr></tbody></table></div>
+      <p>I also reduced Self-Forcing DMD iteration time from 15.634 s to 10.226 s, a 34.6% reduction.</p>
+      <p class="note">Teacher comparison: 8× H100 SXM 80GB, global batch size 64, and 25,200 video tokens. I owned model development and training; data preparation was handled by a separate teammate.</p>
+    </section>
+
+    <section class="project" id="async-grpo">
+      <div class="section-kicker"><span>04 / SELECTED PROJECT</span><span>Independent project · Oct–Nov 2025</span></div>
+      <h2>Async-GRPO<br>Weight Synchronization</h2>
+      <figure>
+        <a href="assets/grpo-workflow.png" target="_blank" rel="noopener" aria-label="Open full-size distributed training workflow"><img src="assets/grpo-workflow.png" width="2122" height="969" loading="lazy" alt="Distributed GRPO workflow with generation, reference log-probability calculation, and training on separate GPU workers, showing idle intervals."></a>
+        <figcaption>Generation, log-probability evaluation, and training on separate GPU workers.</figcaption>
+      </figure>
+      <p class="one-liner">I replaced CPU-mediated weight transfers in Red Hat’s open-source GRPO framework with direct GPU communication, reducing 7B synchronization from 224.06 s to 0.256 s.</p>
+      <dl class="tldr">
+        <div><dt>Problem</dt><dd>Training and response generation ran on separate GPUs, but sending updated 7B weights to the workers took almost four minutes. This repeated transfer became a bottleneck.</dd></div>
+        <div><dt>Approach</dt><dd>I replaced GPU→CPU→Ray Object Store→GPU transfers with NCCL GPU-to-GPU broadcast, and reorganized worker and communication-group management.</dd></div>
+        <div><dt>Result</dt><dd>7B weight synchronization took 0.256 s instead of 224.06 s: approximately 874× faster. I also verified improvements for 0.5B and 3B models.</dd></div>
+      </dl>
+      <div class="project-links"><a href="https://github.com/engineerA314/async-grpo-nccl" target="_blank" rel="noopener">Code &amp; reproduction instructions ↗</a><a href="https://github.com/engineerA314/async-grpo-nccl/blob/main/benchmark/RESULTS.md" target="_blank" rel="noopener">Benchmark results ↗</a></div>
+      <h3>Background</h3>
+      <p>GRPO is a reinforcement learning method that updates a model using rewards for several generated responses. Separating generation and training onto different GPUs allows the two workloads to overlap, but generation and log-probability workers must repeatedly receive the trainer’s latest weights.</p>
+      <p>The original transfer path copied GPU weights to CPU memory, serialized them through Ray’s Object Store, and copied them back to the destination GPU. Larger models spent increasingly long waiting for that path. I focused on eliminating those intermediate copies.</p>
+      <h3>What I built</h3>
+      <ol class="changes">
+        <li><strong>Coordinated worker and communication setup.</strong> I centralized worker registration and connected the FSDP trainer and vLLM generation workers through managed role-specific pools and communication groups.</li>
+        <li><strong>Direct GPU weight broadcast.</strong> I used Ray’s collective communication support to create NCCL groups and broadcast weights from trainer rank 0 directly to generation and log-probability workers, removing CPU serialization and Object Store transfers.</li>
+        <li><strong>Reproducible before-and-after measurements.</strong> I compared both transfer paths at the same synchronization point for Qwen2.5 0.5B, 3B, and 7B, and published the benchmark configuration and reproduction steps.</li>
+      </ol>
+      <h3>Results</h3>
+      <div class="table-wrap"><table><caption>Mean weight synchronization time over 13 transfers per model</caption><thead><tr><th scope="col">Model</th><th scope="col">Ray Object Store</th><th scope="col">NCCL</th><th scope="col">Speedup</th></tr></thead><tbody><tr><th scope="row">Qwen2.5 0.5B</th><td>13.69 s</td><td>~0.18 s</td><td>74.3×</td></tr><tr><th scope="row">Qwen2.5 3B</th><td>92.12 s</td><td>~0.36 s</td><td>256.7×</td></tr><tr><th scope="row">Qwen2.5 7B</th><td>224.06 s</td><td>0.256 s</td><td>874.1×</td></tr></tbody></table></div>
+      <p class="note">Development used an 8× A100 80GB node; the 7B benchmark used four GPUs. Speedups measure the weight synchronization stage.</p>
+    </section>
+
+    <section class="support-section" id="experience">
+      <div class="section-kicker"><span>EXPERIENCE</span></div>
+      <h2>Research, systems,<br>and products.</h2>
+      <article class="experience-entry"><div class="entry-title"><h3>Nari Labs <span>AI Engineer</span></h3><span>Apr 2026–Present</span></div><p>Developed and trained a causal avatar video model, built optimized inference engines for TTS and full-duplex speech, and developed and operated a streaming speech API.</p></article>
+      <article class="experience-entry"><div class="entry-title"><h3>Weavel <span>Co-founder &amp; CTO</span></h3><span>Aug 2023–Jun 2025</span></div><p>I co-founded Weavel to build tools and products for LLM developers. We raised pre-seed funding from Krew Capital and were selected for Y Combinator S24. I worked across Seoul and San Francisco.</p>
+        <ul class="products"><li><a href="https://github.com/weavel-ai/promptmodel" target="_blank" rel="noopener">Promptmodel ↗</a><span>Open-source prompt and model configuration versioning, collaboration, a Python SDK, and evaluation tools.</span></li><li><strong>Weavel Analytics</strong><span>LLM conversation log analysis for understanding user behavior, topics, and conversation flows.</span></li><li><a href="https://github.com/weavel-ai/Ape" target="_blank" rel="noopener">Ape ↗</a><span>A library that automates prompt candidate generation, evaluation, and optimization.</span></li><li><a href="https://www.ycombinator.com/companies/typa" target="_blank" rel="noopener">Typa ↗</a><span>An AI agent that helps founders with LinkedIn storytelling and marketing workflows.</span></li></ul>
+      </article>
+    </section>
+
+    <section class="support-section" id="research">
+      <div class="section-kicker"><span>RESEARCH &amp; EDUCATION</span></div>
+      <h2>Further work.</h2>
+      <article class="research-entry"><p class="eyebrow">FINDINGS OF EMNLP 2024 · CO-AUTHOR</p><h3>Towards Efficient Visual-Language Alignment of the Q-Former for Visual Reasoning Tasks</h3><p>With AttentionX, I worked on parameter-efficient fine-tuning of InstructBLIP and the importance of individual Q-Former and LLM sublayers. My work included visual encoder and layer-wise tuning controls, comparative experiments, and result analysis.</p><div class="project-links"><a href="https://aclanthology.org/2024.findings-emnlp.889/" target="_blank" rel="noopener">Paper ↗</a><a href="https://github.com/AttentionX/InstructBLIP_PEFT" target="_blank" rel="noopener">Code ↗</a></div></article>
+      <div class="other-work"><h3>Additional LLM projects</h3><p><strong>Atlas implementation &amp; RADLADS distillation.</strong> Independent work spanning a paper-based memory model implementation, GPU computation and memory optimization, model training, distillation, and evaluation. <a href="https://github.com/engineerA314/atlas-rnn" target="_blank" rel="noopener">Atlas ↗</a> · <a href="https://github.com/engineerA314/RADLADS-atlas" target="_blank" rel="noopener">RADLADS ↗</a></p><p><strong>1B LLM pretraining.</strong> Data preparation, distributed training, and bottleneck analysis for a SmolLM-style Transformer, trained on 10.49B tokens using 8× A100 40GB GPUs. <a href="https://github.com/engineerA314/smol-lm-pretraining/blob/main/docs/TRAINING_RESULTS.md" target="_blank" rel="noopener">Training results ↗</a></p></div>
+      <div class="education-entry"><h3>Seoul National University</h3><p>B.S. in Computer Science and Engineering · Mar 2018–Aug 2024<br>GPA: 3.51 / 4.3</p><p>Undergraduate research in 2022: language modeling for natural-language mathematical problems, and NeRF / 3D reconstruction.</p></div>
+      <h3>Awards &amp; activities</h3><ul class="awards"><li><strong>Y Combinator Summer 2024</strong> — Selected as a Weavel co-founder; participated in the batch in San Francisco.</li><li><strong>OpenAI × SKT Prompter Day Seoul 2023 · Excellence Award</strong> — September 2023. Built a multilingual interactive storytelling product for children.</li><li><strong>Primer GenAI Hackathon 2023 · Finalist</strong> — Built an AI service for reviewing bar-exam answers.</li></ul>
+    </section>
+    <footer><p>Junyoung Park</p><div><a href="mailto:junpark314a@gmail.com">Email ↗</a><a href="https://github.com/engineerA314" target="_blank" rel="noopener">GitHub ↗</a><a href="https://www.linkedin.com/in/jun-park314/" target="_blank" rel="noopener">LinkedIn ↗</a><a href="#about">Back to top ↑</a></div></footer>
+  </main>
+</body>
+</html>
